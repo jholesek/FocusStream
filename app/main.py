@@ -3,13 +3,14 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
-from app.models import FocusTask
+from app.models import FocusSession, FocusTask, utc_now
 
 
 @asynccontextmanager
@@ -58,6 +59,48 @@ def query_tasks(db: Session, filter_mode: str = "all"):
     return query.order_by(FocusTask.is_completed.asc(), FocusTask.id.desc()).all()
 
 
+async def get_payload(request: Request) -> dict:
+    data = {}
+    data.update(dict(request.query_params))
+    try:
+        form = await request.form()
+        data.update(dict(form))
+    except Exception:
+        pass
+    try:
+        json_data = await request.json()
+        if isinstance(json_data, dict):
+            data.update(json_data)
+    except Exception:
+        pass
+    return data
+
+
+def query_sessions(db: Session, today_only: bool = True):
+    query = db.query(FocusSession)
+    if today_only:
+        now = datetime.now(timezone.utc)
+        start_of_today = datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=timezone.utc)
+        query = query.filter(FocusSession.completed_at >= start_of_today)
+    return query.order_by(FocusSession.completed_at.desc(), FocusSession.id.desc()).all()
+
+
+def calculate_session_stats(sessions):
+    total = len(sessions)
+    total_minutes = sum(s.duration_minutes for s in sessions)
+    rated_sessions = [s for s in sessions if s.energy_rating is not None]
+    avg_energy = (
+        round(sum(s.energy_rating for s in rated_sessions) / len(rated_sessions), 1)
+        if rated_sessions
+        else 0
+    )
+    return {
+        "total": total,
+        "total_minutes": total_minutes,
+        "avg_energy": avg_energy,
+    }
+
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "app": "Focus Stream"}
@@ -67,12 +110,16 @@ def health_check():
 def index(request: Request, db: Session = Depends(get_db)):
     tasks = query_tasks(db, filter_mode="all")
     stats = calculate_stats(db)
+    sessions = query_sessions(db, today_only=True)
+    session_stats = calculate_session_stats(sessions)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "tasks": tasks,
             "stats": stats,
+            "sessions": sessions,
+            "session_stats": session_stats,
             "active_filter": "all",
         },
     )
@@ -202,3 +249,177 @@ def delete_task(
             "stats": stats,
         },
     )
+
+
+# =====================================================================
+# Focus Session & Timer HTMX Endpoints
+# =====================================================================
+
+@app.post("/timer/start", response_class=HTMLResponse)
+@app.post("/sessions/start", response_class=HTMLResponse)
+@app.get("/timer/start", response_class=HTMLResponse)
+async def start_timer(
+    request: Request,
+    task_name: Optional[str] = Form(None),
+    duration_minutes: Optional[int] = Form(None),
+):
+    payload = await get_payload(request)
+    name = (
+        payload.get("task_name")
+        or payload.get("title")
+        or payload.get("task")
+        or task_name
+        or "Focus Session"
+    )
+    if isinstance(name, str):
+        name = name.strip() or "Focus Session"
+
+    duration = (
+        payload.get("duration_minutes")
+        or payload.get("duration")
+        or duration_minutes
+        or 25
+    )
+    try:
+        duration = int(duration)
+    except (ValueError, TypeError):
+        duration = 25
+
+    if (
+        request.headers.get("accept") == "application/json"
+        or (request.headers.get("content-type") == "application/json" and not request.headers.get("hx-request"))
+    ):
+        return JSONResponse(
+            content={
+                "status": "started",
+                "task_name": name,
+                "duration_minutes": duration,
+                "started_at": utc_now().isoformat(),
+            }
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/timer_status.html",
+        context={
+            "task_name": name,
+            "duration_minutes": duration,
+            "started_at": utc_now(),
+        },
+    )
+
+
+@app.post("/sessions", response_class=HTMLResponse)
+@app.post("/sessions/complete", response_class=HTMLResponse)
+@app.post("/sessions/record", response_class=HTMLResponse)
+@app.post("/timer/complete", response_class=HTMLResponse)
+async def record_session(
+    request: Request,
+    task_name: Optional[str] = Form(None),
+    duration_minutes: Optional[int] = Form(None),
+    energy_rating: Optional[int] = Form(None),
+    db: Session = Depends(get_db),
+):
+    payload = await get_payload(request)
+    name = (
+        payload.get("task_name")
+        or payload.get("title")
+        or payload.get("task")
+        or task_name
+        or "Focus Session"
+    )
+    if isinstance(name, str):
+        name = name.strip() or "Focus Session"
+
+    duration = (
+        payload.get("duration_minutes")
+        or payload.get("duration")
+        or duration_minutes
+        or 25
+    )
+    try:
+        duration = int(duration)
+    except (ValueError, TypeError):
+        duration = 25
+
+    energy = payload.get("energy_rating") or payload.get("rating") or energy_rating
+    if energy is not None:
+        try:
+            energy = int(energy)
+        except (ValueError, TypeError):
+            energy = 3
+    else:
+        energy = 3
+
+    completed_str = payload.get("completed_at")
+    completed_dt = utc_now()
+    if completed_str:
+        if isinstance(completed_str, datetime):
+            completed_dt = completed_str
+        elif isinstance(completed_str, str):
+            try:
+                completed_dt = datetime.fromisoformat(completed_str.replace("Z", "+00:00"))
+            except Exception:
+                completed_dt = utc_now()
+
+    new_session = FocusSession(
+        task_name=name,
+        duration_minutes=max(1, duration),
+        energy_rating=energy,
+        completed_at=completed_dt,
+    )
+    db.add(new_session)
+    db.commit()
+    db.refresh(new_session)
+
+    if (
+        request.headers.get("accept") == "application/json"
+        or (request.headers.get("content-type") == "application/json" and not request.headers.get("hx-request"))
+    ):
+        return JSONResponse(
+            content=jsonable_encoder(new_session.to_dict()),
+            status_code=status.HTTP_201_CREATED,
+        )
+
+    sessions = query_sessions(db, today_only=True)
+    session_stats = calculate_session_stats(sessions)
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/session_list.html",
+        context={
+            "sessions": sessions,
+            "session_stats": session_stats,
+            "new_session": new_session,
+        },
+    )
+
+
+@app.get("/sessions/today", response_class=HTMLResponse)
+@app.get("/sessions", response_class=HTMLResponse)
+@app.get("/sessions/log", response_class=HTMLResponse)
+@app.get("/sessions/today/log", response_class=HTMLResponse)
+def get_today_sessions(
+    request: Request,
+    filter: str = "today",
+    all: bool = False,
+    db: Session = Depends(get_db),
+):
+    today_only = not (all or filter == "all")
+    sessions = query_sessions(db, today_only=today_only)
+    session_stats = calculate_session_stats(sessions)
+
+    if (
+        request.headers.get("accept") == "application/json"
+        and not request.headers.get("hx-request")
+    ):
+        return JSONResponse(content=jsonable_encoder([s.to_dict() for s in sessions]))
+
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/session_list.html",
+        context={
+            "sessions": sessions,
+            "session_stats": session_stats,
+        },
+    )
+

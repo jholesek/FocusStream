@@ -1,0 +1,41 @@
+<div id="session-{{ session.id }}" class="group relative flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900/90 transition-all duration-200">
+    <div class="flex items-center space-x-3.5 min-w-0 flex-1">
+        <!-- Icon -->
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+
+        <!-- Task Name & Completed Time -->
+        <div class="min-w-0 flex-1 pr-2">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-slate-100 truncate">
+                    {{ session.task_name }}
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    {{ session.duration_minutes }}m
+                </span>
+            </div>
+            <div class="text-xs text-slate-400 mt-0.5 flex items-center space-x-1.5">
+                <span>Completed at</span>
+                <span class="font-mono text-slate-300">
+                    {% if session.completed_at %}
+                        {{ session.completed_at.strftime('%H:%M UTC') }}
+                    {% else %}
+                        Just now
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Energy Rating Badge -->
+    <div class="flex items-center space-x-2 flex-shrink-0">
+        <div class="flex items-center space-x-1 bg-slate-800/60 border border-slate-700/60 px-2.5 py-1 rounded-lg text-xs font-mono text-amber-400" title="Energy Rating: {{ session.energy_rating }}/5">
+            <span>⚡</span>
+            <span class="font-semibold text-slate-200">{{ session.energy_rating if session.energy_rating is not none else '3' }}</span>
+            <span class="text-slate-400">/5</span>
+        </div>
+    </div>
+</div>

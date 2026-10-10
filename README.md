@@ -6,7 +6,11 @@ A lightweight, flow-state task tracker and focus timer built with **FastAPI**, *
 
 ## 🚀 Features
 
-- **Interactive Pomodoro & Focus Timer**: 25m focus blocks, 5m short breaks, 15m long breaks with audio notifications and progress bar.
+- **Interactive Pomodoro & Focus Timer**: 25m focus blocks, 5m short breaks, 15m long breaks with audio notifications, progress bar, and HTMX server synchronization (`POST /timer/start`).
+- **Focus Session Tracker**:
+  - Record completed focus sessions with task description, duration, and energy ratings (`POST /sessions`).
+  - View today's focus session log and aggregate daily metrics (`GET /sessions/today`).
+  - `FocusSession` model tracking task name, duration in minutes, completion timestamps, and energy level.
 - **Dynamic HTMX Task Management**:
   - Add tasks to the stream without page reload.
   - Category tags (Deep Work, Coding, Learning, Writing, Admin).
@@ -37,7 +41,7 @@ FocusStream/
 ├── app/
 │   ├── __init__.py
 │   ├── database.py       # SQLAlchemy engine & session management
-│   ├── models.py         # FocusTask SQLAlchemy model
+│   ├── models.py         # FocusTask & FocusSession SQLAlchemy models
 │   ├── main.py           # FastAPI routes & HTMX partial handlers
 │   ├── static/
 │   │   └── js/
@@ -46,10 +50,13 @@ FocusStream/
 │       ├── base.html     # HTML skeleton with Tailwind & HTMX CDNs
 │       ├── index.html    # Main dashboard view
 │       └── partials/
-│           ├── stats.html        # Real-time metrics card
-│           ├── task_row.html     # Single task item row
-│           ├── task_list.html    # Task stream list & empty state
-│           └── task_delete.html  # Out-of-band delete response
+│           ├── stats.html          # Real-time metrics card
+│           ├── task_row.html       # Single task item row
+│           ├── task_list.html      # Task stream list & empty state
+│           ├── task_delete.html    # Out-of-band delete response
+│           ├── timer_status.html   # Active timer indicator & quick logger
+│           ├── session_row.html    # Single completed session item row
+│           └── session_list.html   # Today's focus sessions log
 ├── tests/
 │   ├── __init__.py
 │   └── test_app.py       # Pytest test suite covering endpoints & HTMX flows
