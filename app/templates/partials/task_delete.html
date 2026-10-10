@@ -1,0 +1,19 @@
+<!-- Empty content replaces deleted task row -->
+<div id="stats-container" hx-swap-oob="true" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Total Stream</span>
+        <div class="text-2xl font-bold text-white mt-1">{{ stats.total }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Completed</span>
+        <div class="text-2xl font-bold text-emerald-400 mt-1">{{ stats.completed }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Focus Blocks</span>
+        <div class="text-2xl font-bold text-indigo-400 mt-1">{{ stats.total_pomodoros }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Completion</span>
+        <div class="text-2xl font-bold text-amber-400 mt-1">{{ stats.completion_rate }}%</div>
+    </div>
+</div>

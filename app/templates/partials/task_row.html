@@ -1,0 +1,89 @@
+<div id="task-{{ task.id }}" class="group relative flex items-center justify-between p-4 rounded-xl border transition-all duration-200 {% if task.is_completed %}bg-slate-900/30 border-slate-800/40 opacity-70{% else %}bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90 shadow-sm{% endif %}">
+    <div class="flex items-center space-x-3.5 min-w-0 flex-1">
+        <!-- Toggle completion checkbox -->
+        <button 
+            type="button"
+            hx-post="/tasks/{{ task.id }}/toggle"
+            hx-target="#task-{{ task.id }}"
+            hx-swap="outerHTML"
+            class="w-6 h-6 rounded-lg border flex items-center justify-center transition-all duration-150 flex-shrink-0 {% if task.is_completed %}bg-emerald-500/20 border-emerald-500 text-emerald-400{% else %}border-slate-700 bg-slate-800/60 hover:border-indigo-400 text-transparent hover:text-indigo-400{% endif %}"
+            title="Mark as {% if task.is_completed %}incomplete{% else %}complete{% endif %}">
+            <svg class="w-4 h-4 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+        </button>
+
+        <!-- Title & Category -->
+        <div class="min-w-0 flex-1 pr-2">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium truncate {% if task.is_completed %}line-through text-slate-400{% else %}text-slate-100{% endif %}">
+                    {{ task.title }}
+                </span>
+                
+                <!-- Category badge -->
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium 
+                    {% if task.category == 'Deep Work' %}bg-indigo-500/10 text-indigo-400 border border-indigo-500/20
+                    {% elif task.category == 'Coding' %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20
+                    {% elif task.category == 'Learning' %}bg-purple-500/10 text-purple-400 border border-purple-500/20
+                    {% elif task.category == 'Writing' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                    {% else %}bg-slate-500/10 text-slate-300 border border-slate-500/20{% endif %}">
+                    {{ task.category }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions & Pomodoro Tracker -->
+    <div class="flex items-center space-x-2 flex-shrink-0">
+        <!-- Pomodoro session progress counter -->
+        <div class="flex items-center space-x-1 bg-slate-800/60 border border-slate-700/60 px-2 py-1 rounded-lg text-xs font-mono text-slate-300" title="Completed / Target Focus Blocks">
+            <span class="text-amber-400">⚡</span>
+            <span>{{ task.completed_pomodoros }}/{{ task.pomodoros }}</span>
+            <button 
+                type="button"
+                hx-post="/tasks/{{ task.id }}/pomodoro"
+                hx-target="#task-{{ task.id }}"
+                hx-swap="outerHTML"
+                class="ml-1 text-slate-400 hover:text-indigo-400 font-bold px-1 rounded hover:bg-slate-700/60 transition-colors"
+                title="Log completed focus session">
+                +
+            </button>
+        </div>
+
+        <!-- Delete button -->
+        <button 
+            type="button"
+            hx-delete="/tasks/{{ task.id }}"
+            hx-target="#task-{{ task.id }}"
+            hx-swap="outerHTML swap:300ms"
+            hx-confirm="Delete this task from stream?"
+            class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            title="Delete task">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+{% if stats %}
+<!-- Out-of-band stats update -->
+<div id="stats-container" hx-swap-oob="true" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Total Stream</span>
+        <div class="text-2xl font-bold text-white mt-1">{{ stats.total }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Completed</span>
+        <div class="text-2xl font-bold text-emerald-400 mt-1">{{ stats.completed }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Focus Blocks</span>
+        <div class="text-2xl font-bold text-indigo-400 mt-1">{{ stats.total_pomodoros }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Completion</span>
+        <div class="text-2xl font-bold text-amber-400 mt-1">{{ stats.completion_rate }}%</div>
+    </div>
+</div>
+{% endif %}
