@@ -16,8 +16,20 @@
                     <button type="button" data-timer-mode="longBreak" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">Long Break</button>
                 </div>
 
+                <!-- Active Timer Target Input -->
+                <div class="mt-4">
+                    <input 
+                        type="text" 
+                        id="timer-task-input" 
+                        name="task_name" 
+                        placeholder="Focus target (e.g. Core Feature)" 
+                        value="Deep Work Session"
+                        class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                    />
+                </div>
+
                 <!-- Clock Display -->
-                <div class="my-8 text-center">
+                <div class="my-6 text-center">
                     <div id="timer-display" class="font-mono text-6xl sm:text-7xl font-bold tracking-tight text-white drop-shadow-md">
                         25:00
                     </div>
@@ -25,11 +37,23 @@
                         <div id="timer-progress" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
+
+                <!-- Live HTMX Timer Status Target -->
+                <div id="timer-status" class="mb-4 min-h-[38px] flex items-center justify-center text-xs text-slate-400">
+                    <span class="text-slate-500">Ready to start focus timer</span>
+                </div>
             </div>
 
             <!-- Timer Actions -->
             <div class="flex items-center space-x-3">
-                <button id="start-pause-btn" type="button" class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-indigo-600/25 active:scale-[0.99] flex items-center justify-center space-x-2">
+                <button 
+                    id="start-pause-btn" 
+                    type="button" 
+                    hx-post="/timer/start"
+                    hx-include="#timer-task-input"
+                    hx-target="#timer-status"
+                    hx-swap="innerHTML"
+                    class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-indigo-600/25 active:scale-[0.99] flex items-center justify-center space-x-2">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     <span>Start Session</span>
                 </button>
@@ -155,6 +179,77 @@
 
         <!-- Tasks Container -->
         {% include "partials/task_list.html" %}
+    </div>
+
+    <!-- Focus Sessions Log -->
+    <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs uppercase tracking-wider font-semibold text-indigo-400">Time Tracking</span>
+                    <span class="text-xs text-slate-500">•</span>
+                    <span class="text-xs text-slate-400 font-mono">Today's Focus Log</span>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-0.5">Session Log</h3>
+            </div>
+            
+            <button 
+                hx-get="/sessions/today"
+                hx-target="#sessions-list"
+                hx-swap="outerHTML"
+                class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5 self-start sm:self-auto">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Refresh Log</span>
+            </button>
+        </div>
+
+        <!-- Quick Log Session Form -->
+        <form 
+            hx-post="/sessions" 
+            hx-target="#sessions-list" 
+            hx-swap="outerHTML"
+            hx-on::after-request="if(event.detail.successful) this.reset()"
+            class="flex flex-col md:flex-row gap-3 bg-slate-950/40 p-3.5 rounded-2xl border border-slate-800/60">
+            <div class="flex-1 relative">
+                <input 
+                    type="text" 
+                    name="task_name" 
+                    required 
+                    placeholder="Log a completed focus session (e.g. System Design, Code Review)..." 
+                    class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-inner"
+                />
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300">
+                    <span class="text-slate-400 mr-2">Duration:</span>
+                    <input type="number" name="duration_minutes" value="25" min="1" max="480" class="w-12 bg-transparent text-white font-mono text-xs focus:outline-none text-right">
+                    <span class="ml-1 text-slate-400">m</span>
+                </div>
+                <div class="flex items-center bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300">
+                    <span class="text-slate-400 mr-2">Energy:</span>
+                    <select name="energy_rating" class="bg-transparent text-amber-400 font-mono text-xs focus:outline-none">
+                        <option value="5">5 ⚡ (Peak)</option>
+                        <option value="4" selected>4 ⚡ (High)</option>
+                        <option value="3">3 ⚡ (Normal)</option>
+                        <option value="2">2 ⚡ (Low)</option>
+                        <option value="1">1 ⚡ (Drained)</option>
+                    </select>
+                </div>
+                <button 
+                    type="submit" 
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition-all duration-150 shadow-md shadow-indigo-600/20 active:scale-[0.98] whitespace-nowrap flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Record</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Sessions List partial -->
+        {% include "partials/session_list.html" %}
     </div>
 </div>
 {% endblock %}

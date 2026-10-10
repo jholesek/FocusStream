@@ -1,0 +1,33 @@
+<div id="sessions-list" class="space-y-2.5">
+    {% for session in sessions %}
+        {% include "partials/session_row.html" %}
+    {% else %}
+        <div id="empty-sessions" class="text-center py-10 px-4 rounded-2xl border border-dashed border-slate-800 bg-slate-900/30">
+            <div class="w-10 h-10 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 mb-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h4 class="text-sm font-semibold text-slate-300">No focus sessions logged today</h4>
+            <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Start a timer or record your completed work blocks to build today's focus momentum.</p>
+        </div>
+    {% endfor %}
+</div>
+
+{% if session_stats %}
+<!-- Out-of-band session stats update -->
+<div id="session-stats-container" hx-swap-oob="true" class="grid grid-cols-3 gap-3">
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Today's Sessions</span>
+        <div class="text-2xl font-bold text-white mt-1">{{ session_stats.total }}</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Focus Minutes</span>
+        <div class="text-2xl font-bold text-indigo-400 mt-1">{{ session_stats.total_minutes }}m</div>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+        <span class="text-xs font-medium text-slate-400">Avg Energy</span>
+        <div class="text-2xl font-bold text-amber-400 mt-1">{% if session_stats.total > 0 %}{{ session_stats.avg_energy }} ⚡{% else %}—{% endif %}</div>
+    </div>
+</div>
+{% endif %}
