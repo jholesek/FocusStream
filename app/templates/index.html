@@ -1,51 +1,130 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Top Hero / Timer & Metrics Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        <!-- Pomodoro Timer Box -->
-        <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl shadow-black/20 flex flex-col justify-between relative overflow-hidden">
-            <div class="absolute -right-16 -top-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="space-y-8 relative">
+    <!-- Ambient Glow Orbs -->
+    <div class="absolute -top-12 -left-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/3 -right-24 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div>
+    <!-- Top Hero / Circular Timer & Metrics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch relative z-10">
+        <!-- Circular Pomodoro Timer Card -->
+        <div class="lg:col-span-5 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-950/90 border border-slate-800/90 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-black/50 backdrop-blur-xl flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
                 <!-- Mode Switchers -->
-                <div class="flex items-center space-x-1.5 p-1 bg-slate-950/60 border border-slate-800/80 rounded-xl w-fit">
-                    <button type="button" data-timer-mode="focus" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition-all">Focus</button>
-                    <button type="button" data-timer-mode="shortBreak" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">Short Break</button>
-                    <button type="button" data-timer-mode="longBreak" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">Long Break</button>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5 p-1 bg-slate-950/80 border border-slate-800/90 rounded-2xl w-fit shadow-inner">
+                        <button type="button" data-timer-mode="focus" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm shadow-indigo-500/20 transition-all">Focus</button>
+                        <button type="button" data-timer-mode="shortBreak" class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all">Short Break</button>
+                        <button type="button" data-timer-mode="longBreak" class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all">Long Break</button>
+                    </div>
+
+                    <!-- Toast preview helper button -->
+                    <button 
+                        id="test-toast-btn" 
+                        type="button" 
+                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-300 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800/80 transition-all" 
+                        title="Preview completion toast notification">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Active Timer Target Input -->
-                <div class="mt-4">
+                <div class="mt-4 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <circle cx="12" cy="12" r="9" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                        </svg>
+                    </div>
                     <input 
                         type="text" 
                         id="timer-task-input" 
                         name="task_name" 
                         placeholder="Focus target (e.g. Core Feature)" 
                         value="Deep Work Session"
-                        class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                        class="w-full bg-slate-950/80 border border-slate-800/80 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/60 transition-all shadow-inner"
                     />
                 </div>
 
-                <!-- Clock Display -->
-                <div class="my-6 text-center">
-                    <div id="timer-display" class="font-mono text-6xl sm:text-7xl font-bold tracking-tight text-white drop-shadow-md">
-                        25:00
+                <!-- Circular Countdown Centerpiece -->
+                <div class="relative my-7 flex items-center justify-center">
+                    <!-- Ambient radial backdrop glow -->
+                    <div id="timer-glow" class="absolute w-56 h-56 rounded-full bg-indigo-500/20 blur-3xl opacity-30 scale-95 transition-all duration-700 pointer-events-none"></div>
+
+                    <!-- SVG Circular Progress Ring -->
+                    <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+                        <svg class="w-full h-full -rotate-90 transform drop-shadow-2xl" viewBox="0 0 240 240">
+                            <defs>
+                                <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#818cf8" />
+                                    <stop offset="50%" stop-color="#6366f1" />
+                                    <stop offset="100%" stop-color="#06b6d4" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Background Track Circle -->
+                            <circle 
+                                cx="120" 
+                                cy="120" 
+                                r="100" 
+                                class="text-slate-800/70" 
+                                stroke-width="8" 
+                                stroke="currentColor" 
+                                fill="none" 
+                            />
+                            <!-- Animated Progress Circle -->
+                            <circle 
+                                id="timer-circle-progress" 
+                                cx="120" 
+                                cy="120" 
+                                r="100" 
+                                stroke="url(#timer-gradient)" 
+                                stroke-width="8" 
+                                stroke-linecap="round" 
+                                fill="none" 
+                                stroke-dasharray="628.32" 
+                                stroke-dashoffset="628.32" 
+                                class="transition-all duration-300 ease-linear" 
+                            />
+                        </svg>
+
+                        <!-- Circular Center Content -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-4">
+                            <!-- Mode indicator badge -->
+                            <span id="timer-mode-badge" class="px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shadow-sm shadow-indigo-500/10">
+                                ⚡ Focus Mode
+                            </span>
+
+                            <!-- Big Digital Clock Readout -->
+                            <div id="timer-display" class="font-mono text-5xl sm:text-6xl font-extrabold tracking-tight text-white drop-shadow-md my-1.5">
+                                25:00
+                            </div>
+
+                            <!-- Target Label -->
+                            <div id="timer-target-label" class="text-xs text-slate-400 font-medium truncate max-w-[170px]">
+                                Deep Work Session
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-full bg-slate-800/60 rounded-full h-1.5 mt-5 overflow-hidden">
-                        <div id="timer-progress" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
+
+                    <!-- Hidden linear progress bar for backward compatibility -->
+                    <div id="timer-progress" class="hidden"></div>
                 </div>
 
                 <!-- Live HTMX Timer Status Target -->
-                <div id="timer-status" class="mb-4 min-h-[38px] flex items-center justify-center text-xs text-slate-400">
+                <div id="timer-status" class="mb-5 min-h-[38px] flex items-center justify-center text-xs text-slate-400">
                     <span class="text-slate-500">Ready to start focus timer</span>
                 </div>
             </div>
 
             <!-- Timer Actions -->
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2.5 relative z-10 pt-2 border-t border-slate-800/70">
+                <!-- Start/Pause Primary Button -->
                 <button 
                     id="start-pause-btn" 
                     type="button" 
@@ -53,39 +132,72 @@
                     hx-include="#timer-task-input"
                     hx-target="#timer-status"
                     hx-swap="innerHTML"
-                    class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-indigo-600/25 active:scale-[0.99] flex items-center justify-center space-x-2">
+                    class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-indigo-600/30 active:scale-[0.98] flex items-center justify-center space-x-2">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     <span>Start Session</span>
                 </button>
-                <button id="reset-btn" type="button" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 font-medium text-sm transition-all duration-150 active:scale-[0.99]" title="Reset Timer">
+
+                <!-- Reset Button -->
+                <button 
+                    id="reset-btn" 
+                    type="button" 
+                    class="py-3 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-medium text-sm border border-slate-700/60 transition-all duration-150 active:scale-[0.98]" 
+                    title="Reset Timer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </button>
+
+                <!-- Quick +5m Extension -->
+                <button 
+                    id="add-time-btn" 
+                    type="button" 
+                    class="py-3 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-mono font-semibold text-xs border border-slate-700/60 transition-all duration-150 active:scale-[0.98]" 
+                    title="Add 5 minutes to current timer">
+                    +5m
+                </button>
             </div>
         </div>
 
-        <!-- Dashboard Stats & Quick Info -->
-        <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
-            <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 sm:p-7 backdrop-blur-sm flex-1 flex flex-col justify-between">
+        <!-- Dashboard Stats & Stream Momentum -->
+        <div class="lg:col-span-7 flex flex-col justify-between space-y-5">
+            <div class="bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-950/80 border border-slate-800/90 rounded-3xl p-6 sm:p-7 backdrop-blur-xl flex-1 flex flex-col justify-between shadow-xl shadow-black/30">
                 <div>
                     <div class="flex items-center justify-between">
-                        <span class="text-xs uppercase tracking-wider font-semibold text-indigo-400">Daily Momentum</span>
-                        <span class="text-xs text-slate-400 font-medium">Auto-syncing SQLite</span>
+                        <span class="text-xs uppercase tracking-wider font-semibold text-indigo-400 flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <span>Daily Momentum</span>
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono bg-slate-800/60 px-2.5 py-1 rounded-full border border-slate-700/60">SQLite Stream</span>
                     </div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-white mt-1">Keep the stream flowing.</h2>
-                    <p class="text-slate-400 text-sm mt-1">Pick a single target, start the timer, and log your progress when done.</p>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white mt-2 tracking-tight">Keep the stream flowing.</h2>
+                    <p class="text-slate-400 text-sm mt-1 leading-relaxed">Lock into deep focus, let the circular countdown guide your intervals, and capture completed blocks in your session log.</p>
                 </div>
 
                 <div class="mt-6">
                     {% include "partials/stats.html" %}
                 </div>
             </div>
+
+            <!-- Flow State Highlights Card -->
+            <div class="bg-gradient-to-r from-indigo-950/40 via-slate-900/60 to-cyan-950/40 border border-indigo-500/20 rounded-3xl p-5 sm:p-6 backdrop-blur-xl flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Flow State Principle</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Single-tasking beats multitasking. Complete one focus block before switching contexts.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Focus Stream Task Manager -->
-    <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-sm space-y-6">
+    <div class="bg-gradient-to-b from-slate-900/70 via-slate-900/50 to-slate-950/70 border border-slate-800/90 rounded-3xl p-6 sm:p-8 backdrop-blur-xl space-y-6 shadow-xl shadow-black/30">
         <!-- New Task Form -->
         <div>
             <form 
@@ -131,7 +243,7 @@
                     <!-- Submit -->
                     <button 
                         type="submit" 
-                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-3 rounded-xl transition-all duration-150 shadow-md shadow-indigo-600/20 active:scale-[0.98] whitespace-nowrap flex items-center space-x-1.5">
+                        class="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-sm px-5 py-3 rounded-xl transition-all duration-150 shadow-md shadow-indigo-600/30 active:scale-[0.98] whitespace-nowrap flex items-center space-x-1.5">
                         <svg class="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
@@ -149,7 +261,7 @@
             </div>
 
             <!-- Filter Buttons -->
-            <div class="flex items-center space-x-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 w-fit">
+            <div class="flex items-center space-x-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 w-fit">
                 <button 
                     hx-get="/tasks?filter=all" 
                     hx-target="#tasks-list" 
@@ -182,7 +294,7 @@
     </div>
 
     <!-- Focus Sessions Log -->
-    <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-sm space-y-6">
+    <div class="bg-gradient-to-b from-slate-900/70 via-slate-900/50 to-slate-950/70 border border-slate-800/90 rounded-3xl p-6 sm:p-8 backdrop-blur-xl space-y-6 shadow-xl shadow-black/30">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center space-x-2">
@@ -197,7 +309,7 @@
                 hx-get="/sessions/today"
                 hx-target="#sessions-list"
                 hx-swap="outerHTML"
-                class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5 self-start sm:self-auto">
+                class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5 self-start sm:self-auto border border-slate-700/60">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -211,7 +323,7 @@
             hx-target="#sessions-list" 
             hx-swap="outerHTML"
             hx-on::after-request="if(event.detail.successful) this.reset()"
-            class="flex flex-col md:flex-row gap-3 bg-slate-950/40 p-3.5 rounded-2xl border border-slate-800/60">
+            class="flex flex-col md:flex-row gap-3 bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/80 shadow-inner">
             <div class="flex-1 relative">
                 <input 
                     type="text" 
@@ -239,7 +351,7 @@
                 </div>
                 <button 
                     type="submit" 
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition-all duration-150 shadow-md shadow-indigo-600/20 active:scale-[0.98] whitespace-nowrap flex items-center space-x-1.5">
+                    class="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition-all duration-150 shadow-md shadow-indigo-600/30 active:scale-[0.98] whitespace-nowrap flex items-center space-x-1.5">
                     <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -252,6 +364,9 @@
         {% include "partials/session_list.html" %}
     </div>
 </div>
+
+<!-- Floating Toast Notification Container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 {% endblock %}
 
 {% block scripts %}
